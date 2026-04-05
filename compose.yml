@@ -1,0 +1,16 @@
+services:
+  sveltewar-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - "80"
+    volumes:
+      - ./public:/usr/share/nginx/html/:rw
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge

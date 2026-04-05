@@ -1,71 +1,75 @@
-# svelte.demo.war
+# Svelte War Game
 
-Это демо проект игры на фреймворке Svelte   
-http://sveltewar.phpqa.ru/
+A space shooter game built with Svelte, running in Docker.
 
-![](readme.gif)  
-https://habr.com/ru/post/452684/
-### Клонируем шаблон для разработки
+**Live:** http://sveltewar.phpqa.ru/
 
+![](readme.gif)
+
+## Quick Start
+
+### Development
+
+Add to `/etc/hosts`:
 ```
-git clone https://github.com/dionisvl/svelte.demo.war.git
-```
-
-### Устанавливаем зависимости.
-
-```
-cd template/
-npm i
+127.0.0.1 sveltewar.local traefik.local
 ```
 
-
-### Запускаем dev сервер.
-
-```
-npm run dev
+Start:
+```bash
+make up
 ```
 
-Наш шаблон доступен по адресу
-http://localhost:5000. Сервер поддерживает hot reload, поэтому наши изменения будут видны в браузере по мере сохранения изменений.
+Or use `docker compose`:
+```bash
+docker compose -f compose.yml -f compose.override.dev.yaml up -d
+```
 
-Если вы не хотите разворачивать среду локально, то можете использовать онлайн песочницы codesandbox и stackblitz, которые поддерживают Svelte.
+Access via Traefik: http://sveltewar.local:8000 (Dashboard: http://traefik.local:8080)
 
+### Production
 
+Ensure `my.blog` is running first (it provides Traefik and `app-network`):
+```bash
+cd ../my-web3.site  # or wherever my.blog is
+docker compose -f compose.yml -f compose.override.prod.yaml up -d
+```
 
-## Deploying to the web
+Then start sveltewar:
+```bash
+make prod
+```
 
-### With [now](https://zeit.co/now)
+Accessible at: http://sveltewar.phpqa.ru and http://sveltewar.web3main.pro
 
-Install `now` if you haven't already:
+**Note:** If `app-network` doesn't exist, create it:
+```bash
+docker network create app-network --driver bridge
+```
+
+## Useful Commands
 
 ```bash
-npm install -g now
+# View logs
+docker compose logs -f sveltewar-app
+
+# Stop
+docker compose down
+
+# Rebuild
+docker compose -f compose.yml -f compose.override.dev.yaml up -d --build
 ```
 
-Then, from within your project folder:
+## Architecture
 
-```bash
-cd public
-now deploy --name my-project
-```
+- **Dev:** Local Traefik, live code mounting
+- **Prod:** Shared Traefik from `my.blog` project, HTTPS via Let's Encrypt
+- **Build:** Node.js multi-stage → Nginx static serving
 
-As an alternative, use the [Now desktop client](https://zeit.co/download) and simply drag the unzipped project folder to the taskbar icon.
+## References
 
-### With [surge](https://surge.sh/)
-
-Install `surge` if you haven't already:
-
-```bash
-npm install -g surge
-```
-
-Then, from within your project folder:
-
-```bash
-npm run build
-surge public my-project.surge.sh
-```
-
+- Original: https://github.com/dionisvl/svelte.demo.war.git
+- Article: https://habr.com/ru/post/452684/
 
 ## PWA
 - Загружаем сайт в Google Play https://vc.ru/dev/76260-zagruzhaem-sayt-v-google-play

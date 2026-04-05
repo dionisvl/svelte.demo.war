@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.idea
+.DS_Store
+README.md
+readme.gif
+.docker
+compose.yml
+compose.override.*.yaml
+.env
+.env.local
+.env.*.local

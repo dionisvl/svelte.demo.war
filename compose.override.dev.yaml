@@ -1,0 +1,35 @@
+# Development override configuration for sveltewar
+# Usage: docker compose -f compose.yml -f compose.override.dev.yaml up
+
+services:
+  traefik:
+    image: traefik:v3.6.7
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "8000:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.local`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.entrypoints=web"
+
+  sveltewar-app:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sveltewar.rule=Host(`sveltewar.local`)"
+      - "traefik.http.routers.sveltewar.entrypoints=web"
+      - "traefik.http.services.sveltewar.loadbalancer.server.port=80"
+
+networks:
+  app-network:
+    driver: bridge

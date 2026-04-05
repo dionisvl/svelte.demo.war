@@ -1,0 +1,36 @@
+# Production override configuration
+# docker compose -f compose.yml -f compose.override.prod.yaml up -d
+services:
+  sveltewar-app:
+    labels:
+      - "traefik.enable=true"
+      # HTTP
+      - "traefik.http.routers.sveltewar-http.rule=Host(`sveltewar.phpqa.ru`) || Host(`sveltewar.web3main.pro`)"
+      - "traefik.http.routers.sveltewar-http.entrypoints=web"
+      - "traefik.http.routers.sveltewar-http.service=sveltewar"
+      # HTTPS
+      - "traefik.http.routers.sveltewar-secure.rule=Host(`sveltewar.phpqa.ru`) || Host(`sveltewar.web3main.pro`)"
+      - "traefik.http.routers.sveltewar-secure.entrypoints=websecure"
+      - "traefik.http.routers.sveltewar-secure.tls.certresolver=myresolver"
+      - "traefik.http.routers.sveltewar-secure.service=sveltewar"
+      - "traefik.http.services.sveltewar.loadbalancer.server.port=80"
+
+    # Production should have proper logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Health check for orchestration
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  app-network:
+    external: true
+    driver: bridge
