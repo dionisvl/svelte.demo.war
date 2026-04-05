@@ -32,5 +32,6 @@ services:
 
 networks:
   app-network:
+    name: ${DOCKER_NETWORK_NAME}
     external: true
     driver: bridge
