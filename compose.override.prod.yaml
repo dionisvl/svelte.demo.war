@@ -5,11 +5,11 @@ services:
     labels:
       - "traefik.enable=true"
       # HTTP
-      - "traefik.http.routers.sveltewar-http.rule=Host(`sveltewar.phpqa.ru`) || Host(`sveltewar.web3main.pro`)"
+      - "traefik.http.routers.sveltewar-http.rule=Host(`sveltewar.${DOMAIN}`)"
       - "traefik.http.routers.sveltewar-http.entrypoints=web"
       - "traefik.http.routers.sveltewar-http.service=sveltewar"
       # HTTPS
-      - "traefik.http.routers.sveltewar-secure.rule=Host(`sveltewar.phpqa.ru`) || Host(`sveltewar.web3main.pro`)"
+      - "traefik.http.routers.sveltewar-secure.rule=Host(`sveltewar.${DOMAIN}`)"
       - "traefik.http.routers.sveltewar-secure.entrypoints=websecure"
       - "traefik.http.routers.sveltewar-secure.tls.certresolver=myresolver"
       - "traefik.http.routers.sveltewar-secure.service=sveltewar"
