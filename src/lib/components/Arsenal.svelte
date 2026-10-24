@@ -1,5 +1,5 @@
 <script>
-  import { WEAPONS, WEAPON_ORDER } from '../game/weapons.js';
+  import { WEAPONS, WEAPON_ORDER } from '$lib/game/weapons.js';
 
   let { weapon, cooldown = 0, ammo = {}, onselect } = $props();
 

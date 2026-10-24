@@ -4,7 +4,7 @@ Orbital defense arcade shooter built with Svelte 5 and Vite 8. Hold the line aga
 
 **Live:** https://sveltewar.web3main.pro/
 
-![](readme.gif)
+![](docs/readme.gif)
 
 ## Gameplay
 
@@ -62,15 +62,21 @@ Effects are bundled in `public/audio/` and loaded from the same origin, with no 
 ## Layout
 
 ```
-index.html            Vite entry
-src/game/             Pure, deterministic game logic (engine, loop, input, high score)
-src/components/       Svelte UI (Backdrop, Playfield, Hud, Overlay, Pad)
-src/App.svelte        Wires input, loop, persistence and lifecycle
-public/               Static files copied verbatim (manifest, icons, sw.js, art)
-nginx/default.conf    Cache headers and static serving for the image
-tests/                Vitest specs
-dist/                 Build output (ignored)
+index.html               Vite entry
+src/main.js              Mounts the app, registers the service worker in production
+src/App.svelte           Wires input, loop, audio, persistence and lifecycle
+src/lib/game/            Pure, deterministic game logic (engine, weapons, drops, loop, input, high score)
+src/lib/audio/           Web Audio playback, sound map, mute preference
+src/lib/components/      Svelte UI (Backdrop, Playfield, Hud, Overlay, Arsenal, Pad)
+src/lib/pwa/             Service worker registration
+public/                  Static files copied verbatim (manifest, icons, sw.js, audio, art)
+tests/{game,audio,ui,pwa}/  Vitest specs mirroring src/lib
+docker/nginx.conf        Cache headers and static serving for the image
+docs/                    README media and store listing graphics
+dist/                    Build output (ignored)
 ```
+
+Import shared modules through the `$lib` alias (`import { step } from '$lib/game/engine.js'`); it is defined in `vite.config.js` and `jsconfig.json`.
 
 ## Local development
 

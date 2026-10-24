@@ -1,5 +1,5 @@
 <script>
-  import { WORLD } from '../game/config.js';
+  import { WORLD } from '$lib/game/config.js';
 
   let { game, shaking = false, onshakeend, svg = $bindable(null) } = $props();
 

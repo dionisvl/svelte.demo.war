@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { selectWeapon, step } from '../src/game/engine.js';
-import { WEAPONS } from '../src/game/weapons.js';
-import { held, idle, rng, playing, enemy, armed } from './helpers.js';
+import { selectWeapon, step } from '$lib/game/engine.js';
+import { WEAPONS } from '$lib/game/weapons.js';
+import { held, idle, rng, playing, enemy, armed } from '../helpers.js';
 
 const rail = (patch = {}) => selectWeapon(playing({}, { ammo: armed, ...patch }), 'rail');
 const fire = (s, dt = 0.016) => step(s, held({ fire: true }), dt, rng);
@@ -56,7 +56,7 @@ describe('rail', () => {
   });
 
   it('starts fresh after restart', async () => {
-    const { restartGame } = await import('../src/game/engine.js');
+    const { restartGame } = await import('$lib/game/engine.js');
     expect(restartGame(fire(rail())).beams).toEqual([]);
   });
 });

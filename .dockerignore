@@ -7,7 +7,7 @@ npm-debug.log
 .DS_Store
 .qa-notes
 README.md
-readme.gif
+docs
 compose*.yml
 compose*.yaml
 Makefile

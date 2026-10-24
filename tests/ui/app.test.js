@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount, unmount, flushSync } from 'svelte';
-import App from '../src/App.svelte';
+import App from '../../src/App.svelte';
 
 let frames;
 let nextHandle;

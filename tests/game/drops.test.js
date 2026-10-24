@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { step } from '../src/game/engine.js';
-import { WEAPONS } from '../src/game/weapons.js';
-import { WORLD } from '../src/game/config.js';
-import { idle, playing, enemy, bullet } from './helpers.js';
+import { step } from '$lib/game/engine.js';
+import { WEAPONS } from '$lib/game/weapons.js';
+import { WORLD } from '$lib/game/config.js';
+import { idle, playing, enemy, bullet } from '../helpers.js';
 
 const seq = (...values) => {
   let i = 0;

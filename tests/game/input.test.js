@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createInput, keyAction, applyKey, releaseAll } from '../src/game/input.js';
+import { createInput, keyAction, applyKey, releaseAll } from '$lib/game/input.js';
 
 describe('keyboard mapping', () => {
   it('maps arrows and A/D to movement, Space to fire, P/Escape to pause', () => {
@@ -49,7 +49,7 @@ describe('keyboard mapping', () => {
 
 describe('pointer mapping', () => {
   it('maps client x to world x with letterboxing', async () => {
-    const { toWorldX } = await import('../src/game/input.js');
+    const { toWorldX } = await import('$lib/game/input.js');
     expect(toWorldX(500, { left: 100, width: 400, height: 700 })).toBe(400);
     expect(toWorldX(100, { left: 100, width: 400, height: 700 })).toBe(0);
     expect(toWorldX(200, { left: 0, width: 800, height: 700 })).toBe(0);

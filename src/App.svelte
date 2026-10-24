@@ -1,18 +1,18 @@
 <script>
   import { onMount } from 'svelte';
-  import Backdrop from './components/Backdrop.svelte';
-  import Playfield from './components/Playfield.svelte';
-  import Hud from './components/Hud.svelte';
-  import Overlay from './components/Overlay.svelte';
-  import Pad from './components/Pad.svelte';
-  import Arsenal from './components/Arsenal.svelte';
-  import { createGame, startGame, pauseGame, resumeGame, restartGame, selectWeapon, step } from './game/engine.js';
-  import { WEAPONS, WEAPON_ORDER, weaponForKey } from './game/weapons.js';
-  import { createAudio } from './audio/audio.js';
-  import { MAX_DT, WORLD } from './game/config.js';
-  import { createLoop } from './game/loop.js';
-  import { createInput, applyKey, keyAction, releaseAll, toWorldX } from './game/input.js';
-  import { loadHighScore, saveHighScore } from './game/highScore.js';
+  import Backdrop from '$lib/components/Backdrop.svelte';
+  import Playfield from '$lib/components/Playfield.svelte';
+  import Hud from '$lib/components/Hud.svelte';
+  import Overlay from '$lib/components/Overlay.svelte';
+  import Pad from '$lib/components/Pad.svelte';
+  import Arsenal from '$lib/components/Arsenal.svelte';
+  import { createGame, startGame, pauseGame, resumeGame, restartGame, selectWeapon, step } from '$lib/game/engine.js';
+  import { WEAPONS, WEAPON_ORDER, weaponForKey } from '$lib/game/weapons.js';
+  import { createAudio } from '$lib/audio/audio.js';
+  import { MAX_DT, WORLD } from '$lib/game/config.js';
+  import { createLoop } from '$lib/game/loop.js';
+  import { createInput, applyKey, keyAction, releaseAll, toWorldX } from '$lib/game/input.js';
+  import { loadHighScore, saveHighScore } from '$lib/game/highScore.js';
 
   function safeStorage() {
     try {

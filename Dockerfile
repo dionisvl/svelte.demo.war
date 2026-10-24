@@ -15,6 +15,6 @@ COPY tests ./tests
 RUN npm test && npm run build
 
 FROM nginx:1.31.8-alpine-slim AS production
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 EXPOSE 80

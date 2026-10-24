@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createLoop } from '../src/game/loop.js';
+import { createLoop } from '$lib/game/loop.js';
 
 function harness(options = {}) {
   let id = 0;

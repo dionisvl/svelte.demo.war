@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   createGame, startGame, pauseGame, resumeGame, restartGame,
   step, levelFor, spawnInterval, enemySpeed,
-} from '../src/game/engine.js';
-import { WORLD, MAX_DT } from '../src/game/config.js';
-import { idle, held, rng, playing, enemy, bullet } from './helpers.js';
+} from '$lib/game/engine.js';
+import { WORLD, MAX_DT } from '$lib/game/config.js';
+import { idle, held, rng, playing, enemy, bullet } from '../helpers.js';
 
 describe('lifecycle', () => {
   it('starts in ready phase and does not advance until started', () => {

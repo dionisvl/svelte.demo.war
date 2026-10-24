@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { selectWeapon, step } from '../src/game/engine.js';
-import { WEAPONS } from '../src/game/weapons.js';
-import { held, rng, playing, enemy, armed } from './helpers.js';
+import { selectWeapon, step } from '$lib/game/engine.js';
+import { WEAPONS } from '$lib/game/weapons.js';
+import { held, rng, playing, enemy, armed } from '../helpers.js';
 
 const scatter = (patch = {}, overrides = {}) => selectWeapon(playing(overrides, { ammo: armed, ...patch }), 'scatter');
 const fire = (s, dt = 0.016) => step(s, held({ fire: true }), dt, rng);

@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount, unmount, flushSync } from 'svelte';
-import App from '../src/App.svelte';
-import Arsenal from '../src/components/Arsenal.svelte';
-import Hud from '../src/components/Hud.svelte';
-import { createGame } from '../src/game/engine.js';
+import App from '../../src/App.svelte';
+import Arsenal from '$lib/components/Arsenal.svelte';
+import Hud from '$lib/components/Hud.svelte';
+import { createGame } from '$lib/game/engine.js';
 
 let frames;
 let nextHandle;

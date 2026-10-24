@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createAudio } from '../src/audio/audio.js';
-import { soundForEvent, SAMPLE_FILES, MAX_VOICES } from '../src/audio/sounds.js';
-import { SOUND_KEY, loadSoundEnabled, saveSoundEnabled } from '../src/audio/preference.js';
+import { createAudio } from '$lib/audio/audio.js';
+import { soundForEvent, SAMPLE_FILES, MAX_VOICES } from '$lib/audio/sounds.js';
+import { SOUND_KEY, loadSoundEnabled, saveSoundEnabled } from '$lib/audio/preference.js';
 
 function memoryStorage(initial = {}) {
   const data = { ...initial };

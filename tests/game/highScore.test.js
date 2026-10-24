@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { loadHighScore, saveHighScore, STORAGE_KEY } from '../src/game/highScore.js';
+import { loadHighScore, saveHighScore, STORAGE_KEY } from '$lib/game/highScore.js';
 
 const memory = (initial = {}) => {
   const data = { ...initial };

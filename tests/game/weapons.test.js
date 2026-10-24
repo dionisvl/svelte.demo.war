@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { createGame, startGame, pauseGame, restartGame, selectWeapon, step } from '../src/game/engine.js';
-import { WEAPONS, WEAPON_ORDER, weaponForKey } from '../src/game/weapons.js';
-import { applyKey, createInput, keyAction } from '../src/game/input.js';
-import { idle, held, rng, playing, armed } from './helpers.js';
+import { createGame, startGame, pauseGame, restartGame, selectWeapon, step } from '$lib/game/engine.js';
+import { WEAPONS, WEAPON_ORDER, weaponForKey } from '$lib/game/weapons.js';
+import { applyKey, createInput, keyAction } from '$lib/game/input.js';
+import { idle, held, rng, playing, armed } from '../helpers.js';
 
 describe('weapon selection', () => {
   it('defaults to pulse with the original 0.26s cadence', () => {

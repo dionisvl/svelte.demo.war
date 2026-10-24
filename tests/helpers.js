@@ -1,5 +1,5 @@
-import { createGame, startGame } from '../src/game/engine.js';
-import { createInput } from '../src/game/input.js';
+import { createGame, startGame } from '$lib/game/engine.js';
+import { createInput } from '$lib/game/input.js';
 
 export const idle = () => createInput();
 export const held = (patch) => ({ ...createInput(), ...patch });
