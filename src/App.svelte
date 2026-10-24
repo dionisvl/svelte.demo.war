@@ -9,7 +9,7 @@
   import { createGame, startGame, pauseGame, resumeGame, restartGame, selectWeapon, step } from './game/engine.js';
   import { WEAPONS, WEAPON_ORDER, weaponForKey } from './game/weapons.js';
   import { createAudio } from './audio/audio.js';
-  import { MAX_DT } from './game/config.js';
+  import { MAX_DT, WORLD } from './game/config.js';
   import { createLoop } from './game/loop.js';
   import { createInput, applyKey, keyAction, releaseAll, toWorldX } from './game/input.js';
   import { loadHighScore, saveHighScore } from './game/highScore.js';
@@ -46,6 +46,7 @@
   let overAt = 0;
 
   const bannerText = $derived(banner && game.time < banner.until ? banner.text : '');
+  const bannerKey = $derived(banner ? `${banner.text}@${banner.until}` : '');
 
   function merged() {
     return {
@@ -68,6 +69,13 @@
     for (const e of next.events) {
       if (e.type === 'leak' || e.type === 'ram') shaking = true;
       if (e.type === 'level') banner = { text: `Wave ${e.level}`, until: next.time + 1.6 };
+      if (e.type === 'pickup') {
+        const label = e.kind === 'shield' ? 'Shield +1' : `${WEAPONS[e.kind].name} ×${e.amount}`;
+        banner = { text: label, until: next.time + 1.2, kind: e.kind };
+        status = `${label} picked up.`;
+        audio.pickupCue();
+      }
+      if (e.type === 'empty') status = `${WEAPONS[e.weapon].name} empty, back to Pulse.`;
       if (e.type === 'over') finish(next.score);
     }
     game = next;
@@ -131,8 +139,9 @@
 
   function chooseWeapon(id) {
     unlockAudio();
-    if (id === game.weapon) return;
-    game = selectWeapon(game, id);
+    const next = selectWeapon(game, id);
+    if (next === game) return;
+    game = next;
     audio.switchCue(WEAPON_ORDER.indexOf(id));
     status = `${WEAPONS[id].name} selected.`;
   }
@@ -219,7 +228,7 @@
 
 <svelte:window {onkeydown} {onkeyup} />
 
-<Backdrop />
+<Backdrop shift={(game.player.x - WORLD.width / 2) / (WORLD.width / 2)} />
 
 <main class="cabinet" aria-label="Sveltewar">
   <Hud
@@ -245,7 +254,9 @@
     <Playfield {game} {shaking} bind:svg onshakeend={() => (shaking = false)} />
 
     {#if bannerText}
-      <div class="banner" aria-hidden="true">{bannerText}</div>
+      {#key bannerKey}
+        <div class="banner" class:loot={banner.kind} aria-hidden="true">{bannerText}</div>
+      {/key}
     {/if}
 
     {#if game.phase !== 'playing'}
@@ -261,7 +272,7 @@
     {/if}
   </div>
 
-  <Arsenal weapon={game.weapon} cooldown={game.player.cooldown} onselect={chooseWeapon} />
+  <Arsenal weapon={game.weapon} cooldown={game.player.cooldown} ammo={game.ammo} onselect={chooseWeapon} />
   <Pad {onpad} />
   <p class="sr-only" role="status" aria-live="polite">{status}</p>
 </main>
@@ -298,6 +309,16 @@
     text-shadow: 0 0 20px rgb(255 176 46 / 0.7);
     pointer-events: none;
     animation: rise 1.6s ease-out forwards;
+  }
+
+  .banner.loot {
+    inset: 34% 0 auto;
+    font-size: 1.4rem;
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+    color: var(--cyan);
+    text-shadow: 0 0 18px rgb(59 232 255 / 0.75);
+    animation-duration: 1.2s;
   }
 
   @keyframes rise {

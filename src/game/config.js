@@ -28,6 +28,13 @@ export const DEFAULTS = Object.freeze({
   heavyChance: 0.22,
   comboStep: 5,
   maxMultiplier: 5,
+  dropChance: 0.12,
+  heavyDropChance: 0.45,
+  dropPity: 10,
+  shieldDropChance: 0.18,
+  pickupSpeed: 95,
+  pickupRadius: 13,
+  maxPickups: 4,
 });
 
 export const MAX_DT = 0.05;

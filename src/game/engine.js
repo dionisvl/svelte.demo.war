@@ -1,5 +1,5 @@
 import { DEFAULTS, WORLD, MAX_DT } from './config.js';
-import { WEAPONS, isWeapon } from './weapons.js';
+import { WEAPONS, SPECIAL_WEAPONS, isWeapon, noAmmo } from './weapons.js';
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
@@ -15,10 +15,13 @@ export const enemySpeed = (level, cfg = DEFAULTS) =>
 const multiplierFor = (combo, cfg) =>
   Math.min(cfg.maxMultiplier, 1 + Math.floor(combo / cfg.comboStep));
 
-function freshState(config, weapon = 'pulse') {
+export const hasAmmo = (state, id) => id === 'pulse' || (state.ammo?.[id] ?? 0) > 0;
+
+function freshState(config) {
   return {
     phase: 'ready',
-    weapon,
+    weapon: 'pulse',
+    ammo: noAmmo(),
     config,
     time: 0,
     score: 0,
@@ -28,11 +31,13 @@ function freshState(config, weapon = 'pulse') {
     multiplier: 1,
     level: 1,
     shields: config.shields,
-    player: { x: WORLD.width / 2, y: config.playerY, cooldown: 0 },
+    player: { x: WORLD.width / 2, y: config.playerY, vx: 0, cooldown: 0 },
     bullets: [],
     enemies: [],
     explosions: [],
     beams: [],
+    pickups: [],
+    dryKills: 0,
     spawnTimer: 0.8,
     nextId: 1,
     events: [],
@@ -44,8 +49,9 @@ export const createGame = (overrides = {}) => freshState({ ...DEFAULTS, ...overr
 export const startGame = (state) => (state.phase === 'ready' ? { ...state, phase: 'playing' } : state);
 export const pauseGame = (state) => (state.phase === 'playing' ? { ...state, phase: 'paused' } : state);
 export const resumeGame = (state) => (state.phase === 'paused' ? { ...state, phase: 'playing' } : state);
-export const restartGame = (state) => ({ ...freshState(state.config, state.weapon), phase: 'playing' });
-export const selectWeapon = (state, id) => (isWeapon(id) && id !== state.weapon ? { ...state, weapon: id } : state);
+export const restartGame = (state) => ({ ...freshState(state.config), phase: 'playing' });
+export const selectWeapon = (state, id) =>
+  isWeapon(id) && id !== state.weapon && hasAmmo(state, id) ? { ...state, weapon: id } : state;
 
 function movePlayer(player, input, dt, cfg) {
   const min = cfg.playerRadius;
@@ -136,6 +142,19 @@ function muzzleBullets(w, cfg, x, nextId, enemies) {
   return (w.angles ?? [0]).map((a, i) => make(nextId + i, a));
 }
 
+function rollDrop(e, state, dryKills, rng) {
+  const cfg = state.config;
+  const chance = e.kind === 'heavy' ? cfg.heavyDropChance : cfg.dropChance;
+  if (dryKills < cfg.dropPity && rng() >= chance) return null;
+  if (state.shields < cfg.shields && rng() < cfg.shieldDropChance) return 'shield';
+  return SPECIAL_WEAPONS[Math.floor(rng() * SPECIAL_WEAPONS.length) % SPECIAL_WEAPONS.length];
+}
+
+function collect(ammo, kind) {
+  const w = WEAPONS[kind];
+  return { ...ammo, [kind]: Math.min(w.maxAmmo, (ammo[kind] ?? 0) + w.pickup) };
+}
+
 function spawnEnemy(state, rng) {
   const cfg = state.config;
   const heavy = state.level >= cfg.heavyFromLevel && rng() < cfg.heavyChance;
@@ -164,13 +183,16 @@ export function step(state, input, rawDt, rng = Math.random) {
   const events = [];
   let nextId = state.nextId;
   let { score, kills, combo, bestCombo, shields, spawnTimer } = state;
+  let ammo = { ...noAmmo(), ...state.ammo };
+  let dryKills = state.dryKills ?? 0;
   let level = levelFor(kills, cfg.killsPerLevel);
 
   const px = movePlayer(state.player, input, dt, cfg);
   let cooldown = Math.max(0, state.player.cooldown - dt);
 
-  const weapon = state.weapon ?? 'pulse';
+  let weapon = hasAmmo(state, state.weapon ?? 'pulse') ? state.weapon ?? 'pulse' : 'pulse';
   const w = weaponStats(cfg, weapon);
+  let fired = false;
 
   let bullets = [];
   for (const b of state.bullets) {
@@ -186,6 +208,7 @@ export function step(state, input, rawDt, rng = Math.random) {
     beams.push(beam);
     strikes.push({ ...beam, damage: w.damage });
     cooldown = w.cooldown;
+    fired = true;
     events.push({ type: 'shot', weapon });
   } else if (input.fire && cooldown === 0) {
     const volley = muzzleBullets(w, cfg, px, nextId, state.enemies);
@@ -193,7 +216,16 @@ export function step(state, input, rawDt, rng = Math.random) {
       bullets.push(...volley);
       nextId += volley.length;
       cooldown = w.cooldown;
+      fired = true;
       events.push({ type: 'shot', weapon });
+    }
+  }
+
+  if (fired && weapon !== 'pulse') {
+    ammo[weapon] -= 1;
+    if (ammo[weapon] <= 0) {
+      events.push({ type: 'empty', weapon });
+      weapon = 'pulse';
     }
   }
 
@@ -262,10 +294,23 @@ export function step(state, input, rawDt, rng = Math.random) {
     events.push({ type: 'splash', x: blast.x, y: blast.y, radius: splash.splashRadius, hits });
   }
 
+  const pickups = [];
+  for (const p of state.pickups ?? []) {
+    const y = p.y + cfg.pickupSpeed * dt;
+    if (y - cfg.pickupRadius < WORLD.height) pickups.push({ ...p, y, age: p.age + dt });
+  }
+
   const survivors = [];
   for (const e of enemies) {
     const hp = e.hp - (damage.get(e.id) ?? 0);
     if (hp <= 0) {
+      dryKills += 1;
+      const drop = pickups.length < cfg.maxPickups ? rollDrop(e, state, dryKills, rng) : null;
+      if (drop) {
+        dryKills = 0;
+        pickups.push({ id: nextId++, x: e.x, y: e.y, kind: drop, age: 0 });
+        events.push({ type: 'drop', kind: drop, x: e.x, y: e.y });
+      }
       combo += 1;
       bestCombo = Math.max(bestCombo, combo);
       const gained = e.points * multiplierFor(combo, cfg);
@@ -293,6 +338,22 @@ export function step(state, input, rawDt, rng = Math.random) {
     }
   }
 
+  const reach = cfg.playerRadius + cfg.pickupRadius;
+  const floating = [];
+  for (const p of pickups) {
+    if (Math.abs(p.x - px) > reach || Math.abs(p.y - cfg.playerY) > reach) {
+      floating.push(p);
+      continue;
+    }
+    if (p.kind === 'shield') {
+      shields = Math.min(cfg.shields, shields + 1);
+    } else {
+      ammo = collect(ammo, p.kind);
+      weapon = p.kind;
+    }
+    events.push({ type: 'pickup', kind: p.kind, x: p.x, amount: p.kind === 'shield' ? 1 : WEAPONS[p.kind].pickup });
+  }
+
   const nextLevel = levelFor(kills, cfg.killsPerLevel);
   if (nextLevel > state.level) events.push({ type: 'level', level: nextLevel });
   level = nextLevel;
@@ -314,11 +375,15 @@ export function step(state, input, rawDt, rng = Math.random) {
     multiplier: multiplierFor(combo, cfg),
     level,
     shields,
-    player: { ...state.player, x: px, cooldown },
+    weapon,
+    ammo,
+    player: { ...state.player, x: px, vx: dt > 0 ? (px - state.player.x) / dt : 0, cooldown },
     bullets,
     enemies: kept,
     explosions: explosions.slice(-cfg.maxExplosions),
     beams: beams.slice(-cfg.maxBeams),
+    pickups: floating,
+    dryKills,
     spawnTimer,
     nextId,
     events,

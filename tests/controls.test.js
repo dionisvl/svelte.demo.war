@@ -64,13 +64,16 @@ describe('Arsenal component', () => {
   it('lists four weapons with pressed state, accessible labels, descriptions and cooldowns', () => {
     const onselect = vi.fn();
     const target = document.getElementById('app');
-    const cmp = mount(Arsenal, { target, props: { weapon: 'scatter', cooldown: 0, onselect } });
+    const ammo = { scatter: 5, rail: 3, rocket: 0 };
+    const cmp = mount(Arsenal, { target, props: { weapon: 'scatter', cooldown: 0, ammo, onselect } });
     flushSync();
     expect(weaponButtons().map((b) => b.dataset.weapon)).toEqual(['pulse', 'scatter', 'rail', 'rocket']);
     expect(pressed()).toEqual(['scatter']);
     const rail = weaponButtons()[2];
-    expect(rail.getAttribute('aria-label')).toMatch(/Rail.*key 3.*1\.3 seconds/i);
-    expect(rail.textContent).toContain('1.3s');
+    expect(rail.getAttribute('aria-label')).toMatch(/Rail.*key 3.*1\.3 seconds.*3 shots/i);
+    expect(rail.textContent).toContain('×3');
+    expect(weaponButtons()[0].textContent).toContain('∞');
+    expect(weaponButtons()[3].disabled).toBe(true);
     expect(target.textContent).toMatch(/Five-bolt close-range fan/);
     rail.click();
     expect(onselect).toHaveBeenCalledWith('rail');
@@ -79,7 +82,7 @@ describe('Arsenal component', () => {
 
   it('shows how charged the active weapon is', () => {
     const target = document.getElementById('app');
-    const cmp = mount(Arsenal, { target, props: { weapon: 'rail', cooldown: 0.65, onselect() {} } });
+    const cmp = mount(Arsenal, { target, props: { weapon: 'rail', cooldown: 0.65, ammo: { rail: 2 }, onselect() {} } });
     flushSync();
     const charge = Number(weaponButtons()[2].style.getPropertyValue('--charge'));
     expect(charge).toBeCloseTo(0.5, 1);
@@ -111,28 +114,19 @@ describe('Hud sound button', () => {
 });
 
 describe('App weapons', () => {
-  it('switches with keys 1-4 before the game, while playing and while paused, and survives a restart', () => {
+  it('starts on pulse with special weapons locked until a drop arms them', () => {
     installAudio();
     const app = mount(App, { target: document.getElementById('app') });
     flushSync();
     expect(pressed()).toEqual(['pulse']);
+    expect(weaponButtons().map((b) => b.disabled)).toEqual([false, true, true, true]);
     key('Digit3');
     flushSync();
-    expect(pressed()).toEqual(['rail']);
+    expect(pressed()).toEqual(['pulse']);
     document.querySelector('button.primary').click();
     flushSync();
     key('Digit2');
-    flushSync();
-    expect(pressed()).toEqual(['scatter']);
-    window.dispatchEvent(new Event('blur'));
-    flushSync();
     key('Numpad4');
-    flushSync();
-    expect(pressed()).toEqual(['rocket']);
-    [...document.querySelectorAll('button.ghost')].find((b) => /restart/i.test(b.textContent)).click();
-    flushSync();
-    expect(pressed()).toEqual(['rocket']);
-    weaponButtons()[0].click();
     flushSync();
     expect(pressed()).toEqual(['pulse']);
     unmount(app);

@@ -290,4 +290,11 @@ describe('playback', () => {
     audio.switchCue(2);
     expect(ctx.oscillators).toHaveLength(1);
   });
+
+  it('plays a rising three-note chime for pickups, rate limited', async () => {
+    const { audio, ctx } = await ready();
+    audio.pickupCue();
+    audio.pickupCue();
+    expect(ctx.oscillators).toHaveLength(3);
+  });
 });

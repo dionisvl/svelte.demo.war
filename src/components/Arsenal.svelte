@@ -1,7 +1,7 @@
 <script>
   import { WEAPONS, WEAPON_ORDER } from '../game/weapons.js';
 
-  let { weapon, cooldown = 0, onselect } = $props();
+  let { weapon, cooldown = 0, ammo = {}, onselect } = $props();
 
   const accents = { pulse: 'var(--cyan)', scatter: 'var(--amber)', rail: '#b58cff', rocket: '#ff7a5c' };
   const active = $derived(WEAPONS[weapon]);
@@ -12,24 +12,29 @@
   <div class="row">
     {#each WEAPON_ORDER as id, i (id)}
       {@const w = WEAPONS[id]}
+      {@const left = id === 'pulse' ? Infinity : (ammo[id] ?? 0)}
       <button
         type="button"
         data-weapon={id}
         class:on={id === weapon}
+        class:empty={left === 0}
+        disabled={left === 0}
         aria-pressed={id === weapon}
-        aria-label="{w.name}, key {i + 1}. {w.blurb}. Cooldown {w.cooldown} seconds"
+        aria-label="{w.name}, key {i + 1}. {w.blurb}. Cooldown {w.cooldown} seconds. {left === Infinity
+          ? 'Unlimited'
+          : `${left} shots`}"
         title="{w.name} (key {i + 1}): {w.blurb}"
         style:--accent={accents[id]}
         style:--charge={id === weapon ? charge : 1}
         onclick={() => onselect(id)}
       >
         <span class="top"><kbd aria-hidden="true">{i + 1}</kbd><span class="name">{w.name}</span></span>
-        <span class="cd" aria-hidden="true">{w.cooldown}s</span>
+        <span class="cd" aria-hidden="true">{left === Infinity ? '∞' : left ? `×${left}` : 'drop'} · {w.cooldown}s</span>
         <span class="meter" aria-hidden="true"><i></i></span>
       </button>
     {/each}
   </div>
-  <p class="blurb" aria-hidden="true"><b>{active.name}</b> {active.blurb} · {active.cooldown}s</p>
+  <p class="blurb" aria-hidden="true"><b>{active.name}</b> {active.blurb} · shoot raiders for weapon drops</p>
 </div>
 
 <style>
@@ -60,12 +65,18 @@
     transition: background 0.15s, border-color 0.15s, transform 0.1s;
   }
 
-  button:hover {
+  button:not(:disabled):hover {
     border-color: var(--accent);
   }
 
-  button:active {
+  button:not(:disabled):active {
     transform: scale(0.97);
+  }
+
+  button.empty {
+    cursor: not-allowed;
+    opacity: 0.38;
+    filter: grayscale(0.7);
   }
 
   button.on {

@@ -1,5 +1,5 @@
 import {
-  SAMPLE_FILES, MASTER_VOLUME, MAX_VOICES, PRIORITY_VOICES, PRIORITY_FILES, SWITCH_CUE, soundForEvent,
+  SAMPLE_FILES, MASTER_VOLUME, MAX_VOICES, PRIORITY_VOICES, PRIORITY_FILES, SWITCH_CUE, PICKUP_CUE, soundForEvent,
 } from './sounds.js';
 import { loadSoundEnabled, saveSoundEnabled } from './preference.js';
 
@@ -125,21 +125,33 @@ export function createAudio({ AudioContextClass, fetchImpl, storage, baseUrl = '
     }
   }
 
+  function tone(frequency, at, { seconds, level }, type = 'square') {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = frequency;
+    gain.gain.setValueAtTime(level, at);
+    gain.gain.exponentialRampToValueAtTime(0.001, at + seconds);
+    osc.connect(gain);
+    gain.connect(master);
+    track(osc, () => gain.disconnect?.());
+    osc.start(at);
+    osc.stop(at + seconds);
+  }
+
   function switchCue(index = 0) {
     if (!canPlay() || !gapOk('switch', SWITCH_CUE.gap)) return;
     try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const t = ctx.currentTime;
-      osc.type = 'square';
-      osc.frequency.value = SWITCH_CUE.base + SWITCH_CUE.step * index;
-      gain.gain.setValueAtTime(SWITCH_CUE.level, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + SWITCH_CUE.seconds);
-      osc.connect(gain);
-      gain.connect(master);
-      track(osc, () => gain.disconnect?.());
-      osc.start(t);
-      osc.stop(t + SWITCH_CUE.seconds);
+      tone(SWITCH_CUE.base + SWITCH_CUE.step * index, ctx.currentTime, SWITCH_CUE);
+    } catch {
+      /* the cue is optional */
+    }
+  }
+
+  function pickupCue() {
+    if (!canPlay() || !gapOk('pickup', PICKUP_CUE.gap)) return;
+    try {
+      PICKUP_CUE.notes.forEach((f, i) => tone(f, ctx.currentTime + i * PICKUP_CUE.spacing, PICKUP_CUE, 'triangle'));
     } catch {
       /* the cue is optional */
     }
@@ -190,6 +202,7 @@ export function createAudio({ AudioContextClass, fetchImpl, storage, baseUrl = '
     play,
     handleEvents,
     switchCue,
+    pickupCue,
     setMuted,
     setActive,
     destroy,

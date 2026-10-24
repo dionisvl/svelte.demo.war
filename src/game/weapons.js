@@ -20,6 +20,8 @@ export const WEAPONS = Object.freeze({
     damage: 1,
     angles: Object.freeze([-0.42, -0.21, 0, 0.21, 0.42]),
     range: 300,
+    pickup: 14,
+    maxAmmo: 40,
   }),
   rail: Object.freeze({
     id: 'rail',
@@ -29,6 +31,8 @@ export const WEAPONS = Object.freeze({
     damage: 3,
     halfWidth: 9,
     beamTtl: 0.4,
+    pickup: 8,
+    maxAmmo: 24,
   }),
   rocket: Object.freeze({
     id: 'rocket',
@@ -42,8 +46,12 @@ export const WEAPONS = Object.freeze({
     splashRadius: 78,
     turnRate: 3.4,
     ttl: 2.1,
+    pickup: 8,
+    maxAmmo: 24,
   }),
 });
+
+export const SPECIAL_WEAPONS = Object.freeze(WEAPON_ORDER.filter((id) => id !== 'pulse'));
 
 const KEY_WEAPONS = Object.fromEntries(
   WEAPON_ORDER.flatMap((id, i) => [[`Digit${i + 1}`, id], [`Numpad${i + 1}`, id]]),
@@ -51,3 +59,4 @@ const KEY_WEAPONS = Object.fromEntries(
 
 export const weaponForKey = (code) => KEY_WEAPONS[code] ?? null;
 export const isWeapon = (id) => Object.hasOwn(WEAPONS, id);
+export const noAmmo = () => Object.fromEntries(SPECIAL_WEAPONS.map((id) => [id, 0]));

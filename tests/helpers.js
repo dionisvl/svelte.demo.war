@@ -4,6 +4,7 @@ import { createInput } from '../src/game/input.js';
 export const idle = () => createInput();
 export const held = (patch) => ({ ...createInput(), ...patch });
 export const rng = () => 0.5;
+export const armed = Object.freeze({ scatter: 99, rail: 99, rocket: 99 });
 
 export function playing(overrides = {}, patch = {}) {
   return { ...startGame(createGame(overrides)), spawnTimer: 999, ...patch };

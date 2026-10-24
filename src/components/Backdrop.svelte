@@ -1,4 +1,8 @@
-<div class="backdrop" aria-hidden="true">
+<script>
+  let { shift = 0 } = $props();
+</script>
+
+<div class="backdrop" aria-hidden="true" style:--shift={shift}>
   <div class="nebula"></div>
   <div class="stars far"></div>
   <div class="stars mid"></div>
@@ -27,7 +31,9 @@
 
   .stars {
     position: absolute;
-    inset: 0;
+    inset: 0 -40px;
+    transform: translate3d(calc(var(--shift) * var(--depth) * -1px), 0, 0);
+    transition: transform 0.25s ease-out;
     background-repeat: repeat;
     animation: fall linear infinite;
   }
@@ -40,6 +46,7 @@
       radial-gradient(1px 1px at 70px 160px, #cde, transparent);
     background-size: 240px 200px;
     opacity: 0.55;
+    --depth: 6;
     animation-duration: 120s;
   }
 
@@ -50,6 +57,7 @@
       radial-gradient(1.5px 1.5px at 130px 230px, #fff, transparent);
     background-size: 300px 280px;
     opacity: 0.7;
+    --depth: 16;
     animation-duration: 70s;
   }
 
@@ -59,6 +67,7 @@
       radial-gradient(2.2px 2.2px at 280px 260px, var(--amber), transparent);
     background-size: 420px 380px;
     opacity: 0.8;
+    --depth: 32;
     animation-duration: 36s;
   }
 
@@ -85,6 +94,7 @@
     .stars,
     .nebula {
       animation: none;
+      transition: none;
     }
   }
 </style>

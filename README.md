@@ -17,18 +17,25 @@ Orbital defense arcade shooter built with Svelte 5 and Vite 8. Hold the line aga
 | --- | --- |
 | Arrow Left / Right, A / D | Move |
 | Space | Fire (hold for auto-fire), also starts / restarts |
-| 1 / 2 / 3 / 4 (row or numpad) | Select Pulse / Scatter / Rail / Rocket, any time: before launch, mid-run or while paused |
+| 1 / 2 / 3 / 4 (row or numpad) | Select Pulse / Scatter / Rail / Rocket (special weapons only while they have ammo) |
 | P or Esc | Pause / resume |
 | Touch / mouse drag on the field | Steer the ship toward the pointer and fire |
 | On-screen buttons (touch devices) | Move left, move right, fire |
-| Weapon bar under the field (mouse or touch) | Select a weapon; the selected one is highlighted and shows its charge |
+| Weapon bar under the field (mouse or touch) | Select a weapon; shows ammo and charge, empty weapons are greyed out |
 | Speaker button in the header | Sound on / off (remembered) |
 
 The game pauses automatically when the window loses focus or the tab is hidden, and resumes without catch-up.
 
 ## Weapons
 
-All weapons have unlimited ammo and share one cooldown, so switching never skips a reload. The selection survives restarts.
+Pulse is always available with unlimited ammo. Scatter, Rail and Rocket run on ammo that drops from destroyed raiders: each run starts with Pulse only.
+
+- Drones drop a crate 12% of the time, heavies 45%. After 10 kills without a drop the next kill always drops one.
+- Fly into a falling crate to collect it: you get its ammo (Scatter 14, Rail 8, Rocket 8; stacks up to 40 / 24 / 24) and the weapon is equipped at once.
+- While a shield is missing, a crate may instead restore one shield.
+- Each shot spends one ammo; an empty weapon falls back to Pulse.
+
+All weapons share one cooldown, so switching never skips a reload.
 
 | Key | Weapon | Cooldown | Role |
 | --- | --- | --- | --- |

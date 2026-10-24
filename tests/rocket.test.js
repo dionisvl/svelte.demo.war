@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { selectWeapon, step, pickTarget } from '../src/game/engine.js';
 import { WEAPONS } from '../src/game/weapons.js';
-import { held, idle, rng, playing, enemy } from './helpers.js';
+import { held, idle, rng, playing, enemy, armed } from './helpers.js';
 
-const rocket = (patch = {}) => selectWeapon(playing({}, patch), 'rocket');
+const rocket = (patch = {}) => selectWeapon(playing({}, { ammo: armed, ...patch }), 'rocket');
 const fire = (s, dt = 0.016) => step(s, held({ fire: true }), dt, rng);
 const heavy = (patch = {}) => enemy({ r: 26, hp: 2, maxHp: 2, kind: 'heavy', points: 30, vy: 0, ...patch });
 const still = (patch = {}) => enemy({ vy: 0, ...patch });

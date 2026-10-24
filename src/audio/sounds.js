@@ -30,3 +30,5 @@ export function soundForEvent(event) {
 }
 
 export const SWITCH_CUE = Object.freeze({ base: 440, step: 110, seconds: 0.07, level: 0.12, gap: 0.06 });
+
+export const PICKUP_CUE = Object.freeze({ notes: Object.freeze([660, 880, 1320]), spacing: 0.055, seconds: 0.09, level: 0.14, gap: 0.15 });

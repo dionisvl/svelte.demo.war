@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { createGame, startGame, pauseGame, restartGame, selectWeapon, step } from '../src/game/engine.js';
 import { WEAPONS, WEAPON_ORDER, weaponForKey } from '../src/game/weapons.js';
 import { applyKey, createInput, keyAction } from '../src/game/input.js';
-import { idle, held, rng, playing } from './helpers.js';
+import { idle, held, rng, playing, armed } from './helpers.js';
 
 describe('weapon selection', () => {
   it('defaults to pulse with the original 0.26s cadence', () => {
@@ -11,18 +11,43 @@ describe('weapon selection', () => {
     expect(WEAPON_ORDER).toEqual(['pulse', 'scatter', 'rail', 'rocket']);
   });
 
-  it('switches in ready, playing, paused and over phases and ignores unknown ids', () => {
+  it('starts with only pulse; special weapons need ammo', () => {
     const ready = createGame();
-    expect(selectWeapon(ready, 'rail').weapon).toBe('rail');
-    expect(selectWeapon(startGame(ready), 'rocket').weapon).toBe('rocket');
-    expect(selectWeapon(pauseGame(playing()), 'scatter').weapon).toBe('scatter');
-    expect(selectWeapon({ ...playing(), phase: 'over' }, 'scatter').weapon).toBe('scatter');
+    expect(ready.ammo).toEqual({ scatter: 0, rail: 0, rocket: 0 });
+    expect(selectWeapon(ready, 'rail')).toBe(ready);
     expect(selectWeapon(ready, 'laser')).toBe(ready);
   });
 
-  it('keeps the selected weapon across restart', () => {
-    const s = selectWeapon(playing(), 'rail');
-    expect(restartGame({ ...s, phase: 'over' }).weapon).toBe('rail');
+  it('switches to any stocked weapon in playing, paused and over phases', () => {
+    const s = playing({}, { ammo: armed });
+    expect(selectWeapon(startGame(createGame()), 'rocket').weapon).toBe('pulse');
+    expect(selectWeapon(s, 'rocket').weapon).toBe('rocket');
+    expect(selectWeapon(pauseGame(s), 'scatter').weapon).toBe('scatter');
+    expect(selectWeapon({ ...s, phase: 'over' }, 'rail').weapon).toBe('rail');
+    expect(selectWeapon(selectWeapon(s, 'rail'), 'pulse').weapon).toBe('pulse');
+  });
+
+  it('resets to pulse with no ammo on restart', () => {
+    const s = selectWeapon(playing({}, { ammo: armed }), 'rail');
+    const fresh = restartGame({ ...s, phase: 'over' });
+    expect(fresh.weapon).toBe('pulse');
+    expect(fresh.ammo).toEqual({ scatter: 0, rail: 0, rocket: 0 });
+  });
+
+  it('spends one ammo per shot and falls back to pulse when empty', () => {
+    let s = selectWeapon(playing({}, { ammo: { scatter: 0, rail: 2, rocket: 0 } }), 'rail');
+    s = step(s, held({ fire: true }), 0.016, rng);
+    expect(s.ammo.rail).toBe(1);
+    expect(s.weapon).toBe('rail');
+    s = step({ ...s, player: { ...s.player, cooldown: 0 } }, held({ fire: true }), 0.016, rng);
+    expect(s.ammo.rail).toBe(0);
+    expect(s.weapon).toBe('pulse');
+    expect(s.events).toContainEqual({ type: 'empty', weapon: 'rail' });
+  });
+
+  it('never spends ammo on pulse', () => {
+    const s = step(playing({}, { ammo: armed }), held({ fire: true }), 0.016, rng);
+    expect(s.ammo).toEqual(armed);
   });
 
   it('tags shot events with the active weapon', () => {

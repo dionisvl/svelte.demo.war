@@ -6,6 +6,26 @@
   const cfg = $derived(game.config);
   const p = (e) => Math.min(1, e.age / e.ttl);
   const sparks = [0, 1, 2, 3, 4, 5, 6, 7];
+
+  // Pseudo-3D floor: a vanishing point above the field, rails converging on it
+  // and cross lines that scroll toward the viewer as game time advances.
+  const VP = { x: WORLD.width / 2, y: -60 };
+  const FLOOR = WORLD.height + 40 - VP.y;
+  const rails = Array.from({ length: 21 }, (_, i) => -600 + i * 80);
+  const crossDepths = Array.from({ length: 32 }, (_, i) => i);
+  const crossLines = $derived.by(() => {
+    const phase = (game.time * 1.6) % 1;
+    return crossDepths
+      .map((k) => VP.y + FLOOR / (1 + (k - phase) * 0.45))
+      .filter((y) => y > 0 && y < WORLD.height);
+  });
+
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  const roll = (vx, max) => clamp(vx / max, -1, 1);
+  const fog = (y) => clamp(0.35 + y / 180, 0.35, 1);
+  const accents = { scatter: '#ffb02e', rail: '#b58cff', rocket: '#ff7a5c', shield: '#5cff9d' };
+  const glyphs = { scatter: 'S', rail: 'R', rocket: 'M', shield: '+' };
+  const bank = $derived(roll(game.player.vx ?? 0, cfg.playerSpeed));
 </script>
 
 <svg
@@ -53,9 +73,39 @@
     <filter id="f-glow" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="3" />
     </filter>
+    <filter id="f-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" />
+    </filter>
+    <linearGradient id="g-floor-fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0" />
+      <stop offset="0.45" stop-color="#fff" stop-opacity="0.5" />
+      <stop offset="1" stop-color="#fff" stop-opacity="1" />
+    </linearGradient>
+    <mask id="m-floor">
+      <rect width={WORLD.width} height={WORLD.height} fill="url(#g-floor-fade)" />
+    </mask>
+    <clipPath id="c-field">
+      <rect x="0.5" y="0.5" width={WORLD.width - 1} height={WORLD.height - 1} rx="10" />
+    </clipPath>
   </defs>
-
   <rect x="0.5" y="0.5" width={WORLD.width - 1} height={WORLD.height - 1} rx="10" class="frame" />
+  <g class="floor" clip-path="url(#c-field)" mask="url(#m-floor)" aria-hidden="true">
+    {#each rails as x (x)}
+      <line x1={VP.x} y1={VP.y} x2={x} y2={WORLD.height + 40} />
+    {/each}
+    {#each crossLines as y, i (i)}
+      <line class="cross" x1="0" y1={y} x2={WORLD.width} y2={y} />
+    {/each}
+  </g>
+  <g class="shadows" filter="url(#f-shadow)" aria-hidden="true">
+    {#each game.enemies as e (e.id)}
+      <ellipse cx={e.x + 9} cy={e.y + e.r + 6} rx={e.r * 0.85} ry={e.r * 0.3} opacity={0.4 * fog(e.y)} />
+    {/each}
+    {#each game.pickups ?? [] as c (c.id)}
+      <ellipse cx={c.x + 6} cy={c.y + 18} rx={10 * (0.4 + 0.6 * Math.abs(Math.cos(c.age * 3.5)))} ry="3.5" opacity="0.35" />
+    {/each}
+    <ellipse cx={game.player.x + 10} cy={cfg.playerY + 30} rx={20 * (1 - 0.2 * Math.abs(bank))} ry="5" opacity="0.45" />
+  </g>
 
   <g class="line" class:danger={game.shields === 1}>
     <rect x="0" y={cfg.defenseY - 1} width={WORLD.width} height="2" fill="url(#g-line)" />
@@ -64,7 +114,8 @@
   </g>
 
   {#each game.enemies as e (e.id)}
-    <g transform="translate({e.x} {e.y}) scale({e.r / 20})">
+    {@const r = roll(e.vx, 90)}
+    <g transform="translate({e.x} {e.y}) rotate({r * 16}) scale({(e.r / 20) * (1 - 0.18 * Math.abs(r))} {e.r / 20})" opacity={fog(e.y)}>
       {#if e.kind === 'heavy'}
         <g class="heavy" class:hurt={e.hp < e.maxHp}>
           <path d="M0 26 L24 8 L22 -16 L8 -22 L0 -14 L-8 -22 L-22 -16 L-24 8Z" fill="url(#g-heavy)" stroke="#ffd0c4" stroke-width="1.2" />
@@ -145,7 +196,24 @@
     {/if}
   {/each}
 
-  <g transform="translate({game.player.x} {cfg.playerY})" class:over={game.phase === 'over'}>
+  {#each game.pickups ?? [] as c (c.id)}
+    {@const spin = Math.cos(c.age * 3.5)}
+    {@const color = accents[c.kind]}
+    <g transform="translate({c.x} {c.y + Math.sin(c.age * 4) * 3})" aria-hidden="true">
+      <circle r={15 + Math.sin(c.age * 6) * 2} fill="none" stroke={color} stroke-width="1.5" opacity="0.55" filter="url(#f-glow)" />
+      <g transform="scale({0.25 + 0.75 * Math.abs(spin)} 1)">
+        <path d="M0 -13 L11 -6.5 L11 6.5 L0 13 L-11 6.5 L-11 -6.5Z" fill={spin > 0 ? color : '#1a2450'} stroke={color} stroke-width="1.6" />
+        <path d="M0 -13 L11 -6.5 L0 0 L-11 -6.5Z" fill="#fff" opacity={spin > 0 ? 0.35 : 0.12} />
+        {#if spin > 0.3}
+          <text y="4.5" class="glyph">{glyphs[c.kind]}</text>
+        {/if}
+      </g>
+    </g>
+  {/each}
+  <g
+    transform="translate({game.player.x} {cfg.playerY}) rotate({bank * 9}) scale({1 - 0.22 * Math.abs(bank)} 1)"
+    class:over={game.phase === 'over'}
+  >
     <path class="flame" d="M-7 18 L0 44 L7 18Z" fill="#ffb02e" />
     <path class="flame inner" d="M-3.5 18 L0 34 L3.5 18Z" fill="#fff6d6" />
     <path d="M0 -26 L8 -6 L22 14 L22 22 L9 16 L0 24 L-9 16 L-22 22 L-22 14 L-8 -6Z" fill="url(#g-hull)" stroke="#e9feff" stroke-width="1.2" stroke-linejoin="round" />
@@ -169,6 +237,21 @@
     stroke-width: 1;
   }
 
+  .floor line {
+    stroke: rgb(59 232 255 / 0.22);
+    stroke-width: 1;
+  }
+  .floor .cross {
+    stroke: rgb(155 92 255 / 0.3);
+  }
+  .shadows ellipse {
+    fill: #000;
+  }
+  .glyph {
+    fill: #06142b;
+    font: 900 12px var(--display);
+    text-anchor: middle;
+  }
   .zone {
     fill: rgb(255 176 46 / 0.07);
   }
