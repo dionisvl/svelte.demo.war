@@ -1,0 +1,55 @@
+:root {
+  --ink: #040814;
+  --night: #0a1230;
+  --deep: #101c4a;
+  --cyan: #3be8ff;
+  --cyan-dim: #1b8fa6;
+  --amber: #ffb02e;
+  --danger: #ff5a3c;
+  --text: #e8f4ff;
+  --muted: #8da2c8;
+  --display: 'Bahnschrift', 'Arial Narrow', 'Roboto Condensed', 'Segoe UI', system-ui, sans-serif;
+  --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--display);
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

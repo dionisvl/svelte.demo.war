@@ -1,5 +1,5 @@
-# Development override configuration for sveltewar
 # Usage: docker compose -f compose.yml -f compose.override.dev.yaml up
+# Runs the Vite dev server with the repository mounted for live reload.
 
 services:
   traefik:
@@ -24,12 +24,16 @@ services:
       - "traefik.http.routers.dashboard.entrypoints=web"
 
   sveltewar-app:
+    build:
+      target: dev
+    volumes:
+      - ./:/app
+      - /app/node_modules
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.sveltewar.rule=Host(`sveltewar.local`)"
       - "traefik.http.routers.sveltewar.entrypoints=web"
-      - "traefik.http.services.sveltewar.loadbalancer.server.port=80"
+      - "traefik.http.services.sveltewar.loadbalancer.server.port=5173"
 
 networks:
-  app-network:
-    driver: bridge
+  app-network: {}

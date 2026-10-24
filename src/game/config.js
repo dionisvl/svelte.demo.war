@@ -1,0 +1,33 @@
+export const WORLD = Object.freeze({ width: 400, height: 700 });
+
+export const DEFAULTS = Object.freeze({
+  shields: 3,
+  playerY: 612,
+  playerRadius: 20,
+  playerSpeed: 340,
+  fireCooldown: 0.26,
+  bulletSpeed: 640,
+  bulletRadius: 4,
+  defenseY: 652,
+  enemyRadius: 20,
+  heavyRadius: 26,
+  baseEnemySpeed: 62,
+  speedPerLevel: 9,
+  maxEnemySpeed: 220,
+  baseSpawnInterval: 1.35,
+  minSpawnInterval: 0.42,
+  killsPerLevel: 8,
+  maxEnemies: 24,
+  maxBullets: 48,
+  maxExplosions: 32,
+  maxBeams: 4,
+  explosionTtl: 0.55,
+  killPoints: 10,
+  heavyPoints: 30,
+  heavyFromLevel: 3,
+  heavyChance: 0.22,
+  comboStep: 5,
+  maxMultiplier: 5,
+});
+
+export const MAX_DT = 0.05;

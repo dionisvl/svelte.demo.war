@@ -1,5 +1,7 @@
 /node_modules/
+/dist/
 /public/build/
+/.qa-notes/
 
 .DS_Store
 /.idea/

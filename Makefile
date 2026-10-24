@@ -1,41 +1,49 @@
-.PHONY: help dev prod up down logs build stop restart
+COMPOSE_DEV = docker compose -f compose.yml -f compose.override.dev.yaml
+COMPOSE_PROD = docker compose -f compose.yml -f compose.override.prod.yaml
+
+.PHONY: help dev prod up down logs build stop restart test check lint
 
 help:
-	@echo "Sveltewar - Svelte Game"
+	@echo "Sveltewar - orbital defense arcade"
 	@echo ""
-	@echo "Development:"
-	@echo "  make dev       - Start development environment"
-	@echo "  make logs      - View logs"
+	@echo "Local (host Node >= 20.19):"
+	@echo "  npm run dev    - Vite dev server on :5173"
+	@echo "  make test      - Run unit tests"
+	@echo "  make check     - Tests, lint, svelte-check, production build"
 	@echo ""
-	@echo "Production:"
-	@echo "  make prod      - Start production environment"
-	@echo ""
-	@echo "Common:"
-	@echo "  make build     - Rebuild images"
-	@echo "  make stop      - Stop containers"
-	@echo "  make down      - Stop and remove containers"
-	@echo "  make restart   - Restart containers"
+	@echo "Docker:"
+	@echo "  make dev       - Dev stack (Vite + Traefik, source mounted)"
+	@echo "  make prod      - Build and start production (immutable image)"
+	@echo "  make build     - Rebuild dev images without cache"
+	@echo "  make logs      - Follow app logs"
+	@echo "  make down      - Stop and remove dev containers"
 
-dev:
-	docker compose -f compose.yml -f compose.override.dev.yaml up -d
+dev up:
+	$(COMPOSE_DEV) up -d --build
 
 prod:
-	docker compose -f compose.yml -f compose.override.prod.yaml up -d
-
-up:
-	docker compose -f compose.yml -f compose.override.dev.yaml up -d
+	$(COMPOSE_PROD) up -d --build
 
 down:
-	docker compose down
+	$(COMPOSE_DEV) down
 
 stop:
-	docker compose stop
+	$(COMPOSE_DEV) stop
 
 restart:
-	docker compose restart
+	$(COMPOSE_DEV) restart
 
 logs:
-	docker compose logs -f sveltewar-app
+	$(COMPOSE_DEV) logs -f sveltewar-app
 
 build:
-	docker compose -f compose.yml -f compose.override.dev.yaml build --no-cache
+	$(COMPOSE_DEV) build --no-cache
+
+test:
+	npm test
+
+check:
+	npm test
+	npm run lint
+	npm run check
+	npm run build
