@@ -22,7 +22,8 @@ dev up:
 	$(COMPOSE_DEV) up -d --build
 
 prod:
-	$(COMPOSE_PROD) up -d --build
+	$(COMPOSE_PROD) build --pull
+	$(COMPOSE_PROD) up -d
 
 down:
 	$(COMPOSE_DEV) down

@@ -14,7 +14,7 @@ COPY public ./public
 COPY tests ./tests
 RUN npm test && npm run build
 
-FROM nginx:1.27.4-alpine-slim AS production
+FROM nginx:1.31.8-alpine-slim AS production
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 EXPOSE 80
