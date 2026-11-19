@@ -1,11 +1,12 @@
 services:
   sveltewar-app:
+    image: ${SWAR_IMAGE:-swar-sveltewar-app:latest}
     build:
       context: .
       dockerfile: Dockerfile
       target: production
     expose:
-      - "80"
+      - "8080"
     networks:
       - app-network
     restart: unless-stopped
